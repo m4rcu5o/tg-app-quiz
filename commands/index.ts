@@ -38,7 +38,7 @@ export const finalize = async (chatId: number, username?: string) => {
 
     let title = `🎁 Congretulation!`;
     let content = [
-        [{ text: 'Please enter your address 🏆', callback_data: 'enteraddress' }],
+        [{ text: 'Enter address 🏆', callback_data: 'enteraddress' }],
     ]
 
     if (!userInfo) {
@@ -63,7 +63,7 @@ export const failedResult = async (chatId: number, username?: string) => {
 
     let title = `😒 You failed!`;
     let content = [
-        [{ text: 'Please enter your address 🏆', callback_data: 'enteraddress' }],
+        [{ text: 'Enter address 🏆', callback_data: 'enteraddress' }],
     ]
 
     let visiteMsg = [[{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }]];

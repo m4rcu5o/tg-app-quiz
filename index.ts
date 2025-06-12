@@ -8,7 +8,6 @@ import UserModel from "./config/model";
 const token = botToken
 const bot = new TelegramBot(token!, { polling: true });
 let botName: string
-let editText: string
 
 console.log("Bot started");
 
@@ -97,44 +96,15 @@ bot.on('callback_query', async (query: CallbackQuery) => {
                 }, parse_mode: 'HTML'
               }
             );
-      
-            // bot.once(`message`, async (msg) => {
-            //   console.log("wallet:", msg.text);
-            //   if (msg.text) {
-            //     try {
-                  
-            //       const successMessage = await bot.sendMessage(
-            //         chatId, 
-            //         `👌 Successfully saved! You did it! You are the G.O.A.T!`,
-            //         {
-            //           reply_markup: {
-            //             inline_keyboard: [
-            //               [
-            //                 {
-            //                   text: '🔔 Join Channel',
-            //                   url: `https://t.me/${channelID}`
-            //                 }
-            //               ]
-            //             ],
-            //             force_reply: false, // Disable input field
-            //           }
-            //         }
-            //       );
-            //     } catch (error) {
-            //       console.log("error:", error);
-                  
-            //       const failedMessage = await bot.sendMessage(chatId, `😒 Save wallet address failed!`);
-            //     }
-            //   }
-            // })
           }
         } else {
           const failedResult = await commands.failedResult(chatId, username);
-          
+
           if (failedResult) {
             const setDistributionAmt_msg = await bot.sendMessage(chatId, failedResult.title, {
               reply_markup: {
-                inline_keyboard: failedResult.content
+                inline_keyboard: failedResult.content,
+                force_reply: false, // Disable input field
               }, parse_mode: 'HTML'
             } )
           }
@@ -155,7 +125,62 @@ bot.on('callback_query', async (query: CallbackQuery) => {
                   parse_mode: 'HTML'
             })
           break;
-        
+        case "enteraddress":
+          try {
+            const sendAddress = await bot.sendMessage(chatId, "🏆 Please enter address!");
+            bot.once(`message`, async (msg) => {
+              console.log("wallet:", msg.text);
+              if (msg.text) {
+                try {
+                  const addressupdate = await UserModel.findOneAndUpdate(
+                    { username },
+                    {
+                      publicKey: msg.text
+                    }
+                  )
+                  const successMessage = await bot.sendMessage(
+                    chatId, 
+                    `👌 Successfully saved! You did it! You are the G.O.A.T!`,
+                    {
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
+                            {
+                              text: '🔔 Join Channel',
+                              url: `https://t.me/${channelID}`
+                            }
+                          ]
+                        ],
+                        force_reply: false, // Disable input field
+                      }
+                    }
+                  );
+                } catch (error) {
+                  console.log("error:", error);
+                  const failedMessage = await bot.sendMessage(
+                    chatId, 
+                    `😒 Save wallet address failed!`,
+                    {
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
+                            {
+                              text: '🔔 Join Channel',
+                              url: `https://t.me/${channelID}`
+                            }
+                          ]
+                        ],
+                        // force_reply: false, // Disable input field
+                      }
+                    }
+                  );
+                }
+              }
+            })
+          } catch (error) {
+            
+          }
+          break
         default:
           break;
       }
