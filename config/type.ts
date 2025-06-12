@@ -1,6 +1,6 @@
 export type questionType = {
     question: string,
-    options: string,
+    options: string[],
     correct: string,
     difficulty: string
   }
