@@ -1,0 +1,25 @@
+{
+  "name": "tg-app-quiz",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "ts-node-dev index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m4rcu5o/tg-app-quiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/m4rcu5o/tg-app-quiz/issues"
+  },
+  "homepage": "https://github.com/m4rcu5o/tg-app-quiz#readme",
+  "description": "",
+  "dependencies": {
+    "ts-node-dev": "^2.0.0"
+  }
+}
