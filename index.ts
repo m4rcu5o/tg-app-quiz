@@ -21,6 +21,7 @@ bot.setMyCommands(commands.commandList);
 init()
 
 bot.on('message', async (msg) => {
+  const userId = msg.from?.id!;
   const chatId = msg.chat.id!
   const text = msg.text!
   const msgId = msg.message_id!
@@ -33,9 +34,8 @@ bot.on('message', async (msg) => {
     switch (text) {
       case "/start":
         result = await commands.welcome(chatId, username);
-        
         await bot.sendMessage(
-            chatId,
+            userId,
             result.title, 
             {
               reply_markup: {
@@ -66,6 +66,8 @@ bot.on('callback_query', async (query: CallbackQuery) => {
         
         const currenSelection = action.split("_")[1];
         let currentIndex = currentSession?.qIndex!;
+
+        await bot.deleteMessage(chatId, msgId);
 
         if (currenSelection === currentSession?.questions[currentIndex].correct) {
           currentIndex ++;
@@ -113,6 +115,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
 
       switch (action) {
         case "startquize":
+          await bot.deleteMessage(chatId, msgId);
           result = await commands.selectOption(chatId, username, 0);
           await bot.sendMessage(
                 chatId,
@@ -127,6 +130,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
           break;
         case "enteraddress":
           try {
+            await bot.deleteMessage(chatId, msgId);
             const sendAddress = await bot.sendMessage(chatId, "🏆 Please enter address!");
             bot.once(`message`, async (msg) => {
               console.log("wallet:", msg.text);
@@ -138,7 +142,10 @@ bot.on('callback_query', async (query: CallbackQuery) => {
                       publicKey: msg.text
                     }
                   )
-                  const successMessage = await bot.sendMessage(
+
+                  await bot.deleteMessage(chatId, sendAddress.message_id);
+
+                  await bot.sendMessage(
                     chatId, 
                     `👌 Successfully saved! You did it! You are the G.O.A.T!`,
                     {
@@ -188,3 +195,31 @@ bot.on('callback_query', async (query: CallbackQuery) => {
       console.log('callback query error -> \n', error)
     }
 })
+
+bot.on('new_chat_members', async (msg) => {
+  if (msg.new_chat_members) {
+    console.log(msg.new_chat_members);
+    
+    const chatId = msg.chat.id!;
+    const member = msg.new_chat_members[0];
+    const username = member.username || member.first_name;
+    const userId = member.id;
+    
+      await bot.sendMessage(
+        chatId,
+        `👋 Welcome, @${username}!\n\nFU has a gift for you 🎁 — but first, prove yourself in the quiz.\nTap below to begin!`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: '🧠 Start Quiz',
+                  url: `https://t.me/quiz_tg_app_bot`,
+                },
+              ],
+            ],
+          },
+        }
+      );
+  }
+});

@@ -61,7 +61,7 @@ export const finalize = async (chatId: number, username?: string) => {
 export const failedResult = async (chatId: number, username?: string) => {
     const userInfo = await helper.findOfUser(chatId, username);
 
-    let title = `😒 You failed!`;
+    let title = `😒 Game over!`;
     let content = [
         [{ text: 'Enter address 🏆', callback_data: 'enteraddress' }],
     ]
@@ -96,6 +96,6 @@ export const selectOption = async (chatId: number, username: string, index: numb
     const questions = getRandomQuestions(questionsDB, is2x);
     userSessions.set(username, { qIndex: index, questions });
     const title = (index + 1) + `) ` + questions[0].question;
-    const content = questions[0].options.map((opt: string) => [{ text: opt, callback_data: 'answer_' + opt }])
+    const content = questions[0].options.map((opt: string, index: number) => [{ text: opt, callback_data: 'answer_' + (index + 1) }])
     return { title, content }
 }
