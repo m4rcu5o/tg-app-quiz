@@ -62,13 +62,17 @@ bot.on('callback_query', async (query: CallbackQuery) => {
     try {
       let result
       if (action.startsWith("answer_")) {
+        console.log("action:", action);
+        
         let currentSession = userSessions.get(username);
         
         const currenSelection = action.split("_")[1];
         let currentIndex = currentSession?.qIndex!;
 
         await bot.deleteMessage(chatId, msgId);
-
+        console.log("currenSelection:", currenSelection);
+        console.log("correct:", currentSession?.questions[currentIndex].correct);
+        
         if (currenSelection === currentSession?.questions[currentIndex].correct) {
           currentIndex ++;
           
@@ -76,7 +80,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
             currentSession.qIndex = currentIndex;
             currentSession = userSessions.get(username);
             const title = (currentIndex + 1) + ') ' + currentSession?.questions[currentIndex].question!;
-            const content = currentSession?.questions[currentIndex].options.map((opt: string) => [{ text: opt, callback_data: 'answer_' + opt }])!
+            const content = currentSession?.questions[currentIndex].options.map((opt: string, index: number) => [{ text: opt, callback_data: 'answer_' + (index + 1) }])!
   
             await bot.sendMessage(
               chatId,
