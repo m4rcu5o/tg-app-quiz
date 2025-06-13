@@ -70,8 +70,6 @@ bot.on('callback_query', async (query: CallbackQuery) => {
         let currentIndex = currentSession?.qIndex!;
 
         await bot.deleteMessage(chatId, msgId);
-        console.log("currenSelection:", currenSelection);
-        console.log("correct:", currentSession?.questions[currentIndex].correct);
         
         if (currenSelection === currentSession?.questions[currentIndex].correct) {
           currentIndex ++;
