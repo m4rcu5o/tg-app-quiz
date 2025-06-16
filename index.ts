@@ -39,14 +39,16 @@ bot.on('message', async (msg) => {
             result.title, 
             {
               reply_markup: {
-                  inline_keyboard: result.content
+                  inline_keyboard: result.content,
+                  // force_reply: false, // Disable input field
+
               }, parse_mode: 'HTML'
             }
         )
         break;
     
       default:
-        await bot.deleteMessage(chatId, msgId)
+        // await bot.deleteMessage(chatId, msgId)
     }
   } catch (error) {
      console.log('message error -> \n', error)
@@ -117,19 +119,23 @@ bot.on('callback_query', async (query: CallbackQuery) => {
 
       switch (action) {
         case "startquize":
-          await bot.deleteMessage(chatId, msgId);
-          result = await commands.selectOption(chatId, username, 0); 
-          await bot.sendMessage(
-                chatId,
-                result.title, 
-                {
-                  reply_markup: {
-                      inline_keyboard: result.content,
-                      force_reply: false, // Disable input field
-                  },
-                  parse_mode: 'HTML'
-            })
-          break;
+          try {
+            await bot.deleteMessage(chatId, msgId);
+            result = await commands.selectOption(chatId, username, 0); 
+            await bot.sendMessage(
+                  chatId,
+                  result.title, 
+                  {
+                    reply_markup: {
+                        inline_keyboard: result.content,
+                        force_reply: false, // Disable input field
+                    },
+                    parse_mode: 'HTML'
+              })
+            break;
+          } catch (error) {
+            console.log("error", error);
+          }
         case "enteraddress":
           try {
             await bot.deleteMessage(chatId, msgId);
