@@ -36,7 +36,7 @@ export const welcome = async (chatId: number, username?: string) => {
         [{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }]
     ]
 
-    if (!isTest && (userInfo?.chance === 0)) {  
+    if (!isTest && userInfo?.chance && (userInfo?.chance <= 0)) {  
         if (userInfo?.result === 1 && !userInfo?.isMulti) {
             return { title, content }
         }
