@@ -13,9 +13,9 @@ export function getRandomQuestions(questionsDB: questionType[], is2x: boolean) {
   if (is2x) {
     return [...pick(hard, hardAmount), ...pick(veryHard, ultra)].sort(() => 0.5 - Math.random());
   }
-  return [...pick(easy, questionAmount), ...pick(medium, questionAmount), ...pick(hard, questionAmount), ...pick(veryHard, questionAmount)].sort(() => 0.5 - Math.random());
+  // return [...pick(easy, questionAmount), ...pick(medium, questionAmount), ...pick(hard, questionAmount), ...pick(veryHard, questionAmount)].sort(() => 0.5 - Math.random());
+  return [...pick(easy, questionAmount), ...pick(medium, questionAmount), ...pick(hard, questionAmount), ...pick(veryHard, questionAmount)];
 }
-
 
 // function isValidSolanaAddress(address: string): boolean {
 //   try {

@@ -86,14 +86,14 @@ bot.on('callback_query', async (query: CallbackQuery) => {
               {
                 reply_markup: {
                     inline_keyboard: content,
-                    force_reply: false, // Disable input field
+                    // force_reply: false, // Disable input field
                 },
                 parse_mode: 'HTML'
             })
           } else {
             const finalize = await commands.finalize(chatId, username);
 
-            const setDistributionAmt_msg = await bot.sendMessage(chatId, finalize.title,
+            await bot.sendMessage(chatId, finalize.title,
               {
                 reply_markup: {
                     inline_keyboard: finalize.content
@@ -105,7 +105,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
           const failedResult = await commands.failedResult(chatId, username);
 
           if (failedResult) {
-            const setDistributionAmt_msg = await bot.sendMessage(chatId, failedResult.title, {
+            await bot.sendMessage(chatId, failedResult.title, {
               reply_markup: {
                 inline_keyboard: failedResult.content,
                 force_reply: false, // Disable input field
@@ -118,7 +118,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
       switch (action) {
         case "startquize":
           await bot.deleteMessage(chatId, msgId);
-          result = await commands.selectOption(chatId, username, 0);
+          result = await commands.selectOption(chatId, username, 0); 
           await bot.sendMessage(
                 chatId,
                 result.title, 
@@ -141,7 +141,8 @@ bot.on('callback_query', async (query: CallbackQuery) => {
                   const addressupdate = await UserModel.findOneAndUpdate(
                     { username },
                     {
-                      publicKey: msg.text
+                      publicKey: msg.text,
+                      chance: 0
                     }
                   )
 
@@ -207,21 +208,21 @@ bot.on('new_chat_members', async (msg) => {
     const username = member.username || member.first_name;
     const userId = member.id;
     
-      await bot.sendMessage(
-        chatId,
-        `👋 Welcome, @${username}!\n\nFU has a gift for you 🎁 — but first, prove yourself in the quiz.\nTap below to begin!`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: '🧠 Start Quiz',
-                  url: `https://t.me/quiz_tg_app_bot`,
-                },
-              ],
+    await bot.sendMessage(
+      chatId,
+      `👋 Welcome, @${username}!\n\nFU has a gift for you 🎁 — but first, prove yourself in the quiz.\nTap below to begin!`,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: '🧠 Start Quiz',
+                url: `https://t.me/quiz_tg_app_bot`,
+              },
             ],
-          },
-        }
-      );
+          ],
+        },
+      }
+    );
   }
 });

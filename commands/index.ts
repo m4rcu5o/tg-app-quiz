@@ -3,6 +3,11 @@ import { getRandomQuestions } from "../util";
 import { questionsDB } from "../config/question";
 import UserModel from "../config/model";
 import { channelID } from "../config";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const isTest = process.env.TEST || false;
 
 type Session = {
   qIndex: number;
@@ -18,14 +23,23 @@ export const commandList = [
 
 export const welcome = async (chatId: number, username?: string) => {
     const userInfo = await helper.findOfUser(chatId, username);
-
-    let title = `👨‍💻 GM fren, I'm FU! I have a gift for you, but first, you need to prove yourself by answering 8 questions correctly. Good luck!`;
+    let chance = 2;
+    if (userInfo) {
+        chance = userInfo.chance;
+    }
+    let title = `👨‍💻 GM fren, I'm FU! I have a gift for you, but first, you need to prove yourself by answering 8 questions correctly. Good luck!
+    
+    - Must answer 8 questions
+    - You have 2 chance`;
     let content = [
-        [{ text: 'Start Quiz 😉', callback_data: 'startquize' }],
+        [{ text: `Start Quiz 😉. You have got ${chance} chance`, callback_data: 'startquize' }],
         [{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }]
     ]
 
-    if (userInfo) {
+    if (!isTest && (userInfo?.chance === 0)) {  
+        if (userInfo?.result === 1 && !userInfo?.isMulti) {
+            return { title, content }
+        }
         title = `👨‍💻 GM fren, Welcome to our community`;
         content.shift();
     }
@@ -45,6 +59,7 @@ export const finalize = async (chatId: number, username?: string) => {
         const data = new UserModel({
             userId: chatId,
             username: username,
+            chance: 0,
             result: 1
         });
 
@@ -52,26 +67,38 @@ export const finalize = async (chatId: number, username?: string) => {
         content.push([{ text: '2x allocation 🚀', callback_data: 'startquize' }]);
     } else if (userInfo.result === 1) {
         userInfo.result = 2;
+        userInfo.chance = 0;
         await userInfo.save()
+    } else if (userInfo.result === 0) {
+        userInfo.result = 1;
+        userInfo.chance = 0;
+        await userInfo.save();
     }
    
     return { title, content }
 }
 
-export const failedResult = async (chatId: number, username?: string) => {
+export const failedResult = async (chatId: number, username: string) => {
+    console.log("came here!");
+
+    const sessionIndex = userSessions.get(username)?.qIndex;
     const userInfo = await helper.findOfUser(chatId, username);
 
-    let title = `😒 Game over!`;
+    let title = `😒 Game over! Finished ${sessionIndex} / 8 Questions`;
     let content = [
         [{ text: 'Enter address 🏆', callback_data: 'enteraddress' }],
     ]
 
-    let visiteMsg = [[{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }]];
-
+    let visiteMsg = [
+        [{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }],
+        [{ text: 'Try again 🚀', callback_data: 'startquize' }]
+    ];
+    
     if (!userInfo) {
         const data = new UserModel({
             userId: chatId,
             username: username,
+            chance: 1,
             result: 0
         });
 
@@ -79,9 +106,23 @@ export const failedResult = async (chatId: number, username?: string) => {
         return { title, content: visiteMsg }
 
     } else if (userInfo.result === 1) {
+        
         userInfo.isMulti = true;
+        let chance = userInfo.chance - 1; 
+        userInfo.chance = chance; 
         await userInfo.save()
+        if (chance !== 0) {
+            content.push([{ text: 'Try again 🚀', callback_data: 'startquize' }])
+        }
         return { title, content }
+    } else if (userInfo.result === 0) {
+        let chance = userInfo.chance - 1; 
+        userInfo.chance = chance; 
+        await userInfo.save()
+        if (chance === 0) {
+            visiteMsg.pop();
+        }
+        return { title, content: visiteMsg }
     }
 }
 
