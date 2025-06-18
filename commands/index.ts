@@ -2,12 +2,10 @@ import * as helper from "./helper"
 import { getRandomQuestions } from "../util";
 import { questionsDB } from "../config/question";
 import UserModel from "../config/model";
-import { channelID } from "../config";
+import { channelID, isTest } from "../config";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const isTest = process.env.TEST || false;
 
 type Session = {
   qIndex: number;
@@ -27,28 +25,42 @@ export const welcome = async (chatId: number, username?: string) => {
     if (userInfo) {
         chance = userInfo.chance;
     }
-    let title = `👨‍💻 GM fren, I'm FU! I have a gift for you, but first, you need to prove yourself by answering 8 questions correctly. Good luck!
+    let title = `🎯 Welcome to the Quiz Challenge!
     
-    - Must answer 8 questions
-    - You have 2 chance`;
+Test your knowledge with 8 exciting questions!
+You have 2 chances to complete the quiz:
+
+✅ First mistake? You’ll start over from question 1.
+❌ Second mistake? Game over.
+
+💯 Score a perfect 8/8 to unlock a special surprise!
+
+Ready to play? Let’s go! 🚀`;
+
     let content = [
-        [{ text: `Start Quiz 😉. You have got ${chance} chance`, callback_data: 'startquize' }],
+        [{ text: `Start Quiz 😉. You have got ${chance <= 0? 0 : chance } chance`, callback_data: 'startquize' }],
         [{ text: 'Visit Community 🚀', url: `https://t.me/${channelID}` }]
     ]
 
-    if (!isTest && userInfo?.chance && (userInfo?.chance <= 0)) {  
+    console.log("isTest", !isTest);
+    if (!isTest && userInfo?.chance != undefined && userInfo?.chance <= 0) {  
+        
         if (userInfo?.result === 1 && !userInfo?.isMulti) {
+            console.log("return here 1");
+            
             return { title, content }
         }
-        title = `👨‍💻 GM fren, Welcome to our community`;
+        title = `👨‍💻 You are not able to play game`;
         content.shift();
     }
+    console.log("return here 2");
    
     return { title, content }
 }
 
-export const finalize = async (chatId: number, username?: string) => {
+export const finalize = async (chatId: number, username: string) => {
     const userInfo = await helper.findOfUser(chatId, username);
+    deleteSession(username);
 
     let title = `🎁 Congretulation!`;
     let content = [
@@ -79,7 +91,7 @@ export const finalize = async (chatId: number, username?: string) => {
 }
 
 export const failedResult = async (chatId: number, username: string) => {
-    console.log("came here!");
+    deleteSession(username);
 
     const sessionIndex = userSessions.get(username)?.qIndex;
     const userInfo = await helper.findOfUser(chatId, username);
@@ -111,7 +123,7 @@ export const failedResult = async (chatId: number, username: string) => {
         let chance = userInfo.chance - 1; 
         userInfo.chance = chance; 
         await userInfo.save()
-        if (chance !== 0) {
+        if (chance > 0) {
             content.push([{ text: 'Try again 🚀', callback_data: 'startquize' }])
         }
         return { title, content }
@@ -122,6 +134,7 @@ export const failedResult = async (chatId: number, username: string) => {
         if (chance === 0) {
             visiteMsg.pop();
         }
+        
         return { title, content: visiteMsg }
     }
 }
@@ -137,6 +150,16 @@ export const selectOption = async (chatId: number, username: string, index: numb
     const questions = getRandomQuestions(questionsDB, is2x);
     userSessions.set(username, { qIndex: index, questions });
     const title = (index + 1) + `) ` + questions[0].question;
-    const content = questions[0].options.map((opt: string, index: number) => [{ text: opt, callback_data: 'answer_' + (index + 1) }])
+    const content = questions[0].options.map((opt: string, index: number) => [{ text: opt, callback_data: 'answer_' + (index + 1) }]);
     return { title, content }
+}
+
+export const deleteSession = (username: string) => {
+    const currentSession = userSessions.get(username);
+
+    if (currentSession) {
+        userSessions.delete(username);
+        console.log("deleted session: @", username);
+        
+    }
 }

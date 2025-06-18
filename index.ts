@@ -2,7 +2,7 @@ import "dotenv/config";
 import TelegramBot, { CallbackQuery } from 'node-telegram-bot-api';
 import * as commands from './commands';
 import { botToken, init, channelID } from './config';
-import { userSessions } from './commands/index';
+import { userSessions, deleteSession } from './commands/index';
 import UserModel from "./config/model";
 
 const token = botToken
@@ -33,6 +33,13 @@ bot.on('message', async (msg) => {
     let result
     switch (text) {
       case "/start":
+        const setting = userSessions.get(username);
+        if (setting) {
+          console.log("broken because session exist: @", username);
+          
+          break;
+        }
+
         result = await commands.welcome(chatId, username);
         await bot.sendMessage(
             userId,
@@ -121,6 +128,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
         case "startquize":
           try {
             await bot.deleteMessage(chatId, msgId);
+
             result = await commands.selectOption(chatId, username, 0); 
             await bot.sendMessage(
                   chatId,
@@ -132,16 +140,15 @@ bot.on('callback_query', async (query: CallbackQuery) => {
                     },
                     parse_mode: 'HTML'
               })
+            } catch (error) {
+              console.log("error", error);
+              deleteSession(username);
+            }
             break;
-          } catch (error) {
-            console.log("error", error);
-          }
         case "enteraddress":
           try {
-            await bot.deleteMessage(chatId, msgId);
             const sendAddress = await bot.sendMessage(chatId, "🏆 Please enter address!");
             bot.once(`message`, async (msg) => {
-              console.log("wallet:", msg.text);
               if (msg.text) {
                 try {
                   const addressupdate = await UserModel.findOneAndUpdate(
@@ -194,7 +201,7 @@ bot.on('callback_query', async (query: CallbackQuery) => {
               }
             })
           } catch (error) {
-            
+            console.log(error);
           }
           break
         default:
