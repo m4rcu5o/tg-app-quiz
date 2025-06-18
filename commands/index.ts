@@ -91,9 +91,9 @@ export const finalize = async (chatId: number, username: string) => {
 }
 
 export const failedResult = async (chatId: number, username: string) => {
+    const sessionIndex = userSessions.get(username)?.qIndex;
     deleteSession(username);
 
-    const sessionIndex = userSessions.get(username)?.qIndex;
     const userInfo = await helper.findOfUser(chatId, username);
 
     let title = `😒 Game over! Finished ${sessionIndex} / 8 Questions`;
